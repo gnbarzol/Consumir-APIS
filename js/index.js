@@ -27,6 +27,44 @@ const getAuthors = () => {
                     select.innerHTML += `<option value="${author}">${author}</option>`;
             }
         })
+        .catch((err) => {
+            console.error(err);
+        })
+}
+
+const getBooks = () => {
+    //Obtengo el contenedor donde se mostraran los resultados
+    let response = document.getElementById("resultados");
+    response.innerHTML = `<p class="text-muted">Loading...</p>`;
+
+    fetch("https://dataserverdaw.herokuapp.com/libros/xml")
+        .then((response) => {
+            return response.text();
+        })
+        .then((data) => {
+            let parser = new DOMParser();
+            let xml = parser.parseFromString(data,"text/xml");
+            let books = xml.getElementsByTagName('book');
+
+            response.innerHTML = "";
+
+            for(let book of books){
+                //Saco los autores del libro
+                let urls = book.getElementsByTagName('thumbnailUrl');
+                //Solo se escoje los libros con img source
+                if(urls.length > 0){
+                    //Obtiene el src de la img del libro
+                    let urlImg = urls[0].textContent;
+                    //Inyecta la img al html
+                    response.innerHTML += `
+                    <img class="img-thumbnail m-2" width="160px" height="197px" src="${urlImg}" />
+                    `
+                }
+            }
+        })
+        .catch((err) => {
+            console.error(err);
+        })
 }
 
 //Cada vez que se elija otro autor el select lanza el event change
@@ -81,8 +119,12 @@ select.addEventListener('change', (e) => {
 
             
         })
+        .catch((err) => {
+            console.error(err);
+        })
 });
 
 document.addEventListener('DOMContentLoaded', () => {
     getAuthors();
+    getBooks();
 })
